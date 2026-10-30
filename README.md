@@ -24,3 +24,15 @@ The container requires DATABASE_URL for PostgreSQL; it runs as a non-root user a
 Full documentation and deployment files: https://github.com/gchinar/CouchQuest
 
 Companion service: https://github.com/gchinar/couchquest-catalog
+
+## Independent Kubernetes deployment
+
+This repository includes its own API, database, service and storage manifests. Start the dedicated Minikube profile, build only this service and deploy it:
+
+```bash
+minikube start -p couchquest --driver=docker --cpus=2 --memory=2800 --kubernetes-version=v1.35.0 --keep-context
+minikube -p couchquest image build -t couchquest-session:1.0 .
+python3 deployment/deploy.py --service session
+```
+
+The deployment script explicitly targets the couchquest context and preserves existing database credentials. Session creation requires the Catalog service, configured through CATALOG_URL; its unit tests replace that dependency with a test double. Both services can be released independently with `kubectl --context couchquest -n couchquest set image deployment/session session=YOUR_IMAGE_TAG`.
